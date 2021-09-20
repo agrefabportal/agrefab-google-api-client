@@ -1,0 +1,25 @@
+{
+    "name": "agrefab-google-api-client",
+    "version": "0.0.01",
+    "description": "Access Google APIs.",
+    "main": "index.js",
+    "scripts": {
+        "test": "node test.js"
+    },
+    "keywords": [
+        "agrefab"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/agrefabportal/agrefab-google-api-client.git"
+    },
+    "author": "kevin@agrefab.com",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/agrefabportal/agrefab-google-api-client/issues"
+    },
+    "homepage": "https://github.com/agrefabportal/agrefab-google-api-client#readme",
+    "dependencies": {
+        "googleapis": "^39.2.0"
+    }
+}
