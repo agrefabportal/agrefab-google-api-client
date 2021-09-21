@@ -16,30 +16,29 @@ class GoogleApiClient {
             scope: this.scopes,
         });
     }
-    // 
     /**
-     * Access google apis. Make sure the application is OAuth Web and "web" is in the client secret file
+     * You must call @method {authorize} and get a successful response before making any API calls. Make sure the application is OAuth Web and "web" is in the client secret file
      * @param {JSON} credentials Private credentials downloaded from Google Cloud.
      */
     constructor(credentials) {
         this.credentials = credentials;
-        let { client_secret, client_id, redirect_uris } = this.credentials.web;
+        let { client_secret, client_id, redirect_uris } = credentials.web;
         this.oAuth2Client = new googleapis.google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
     }
     /**
-     * Generate PDF document from google sheet data
+     * List data from a public google sheet
      */
-     generatePDF() {
-        return new Promise(resolve => {
-            fs.readFile(this.tokensFile, (err, token) => {
-                if (err) {
-                    resolve(false);
-                } else {
-                    this.oAuth2Client.setCredentials(JSON.parse(token));
-                    resolve(true);
-                }
+    listExampleData() {
+        const sheets = googleapis.google.sheets({ version: 'v4', auth: this.oAuth2Client });
+        return new Promise(function (resolve, reject) {
+            sheets.spreadsheets.values.get({
+                spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+                range: 'Class Data!A2:E',
+            }, (err, res) => {
+                if (err) return reject('The API returned an error: ' + err);
+                resolve(res.data.values);
             });
-        });
+        }.bind(sheets));
     }
     /**
      * Create an OAuth2 client with the given credentials, and then execute the
@@ -50,15 +49,15 @@ class GoogleApiClient {
      */
     async authorize() {
         return new Promise(resolve => {
-            fs.readFile(this.tokensFile, async (err, token) => {
+            fs.readFile(this.tokensFile, (async (err, token) => {
                 if (err) {
                     resolve(false);
                 } else {
-                    this.oAuth2Client.setCredentials(token);
+                    this.oAuth2Client.setCredentials(JSON.parse(token));
                     this.users.count = 1;
                     resolve(true);
                 }
-            });
+            }).bind(this.oAuth2Client));
         });
     }
     /**
@@ -75,31 +74,6 @@ class GoogleApiClient {
         // If request specified a G Suite domain:
         // const domain = payload['hd'];
         // verify().catch(console.error);
-    }
-
-    /**
-     * Prints the names and majors of students in a sample spreadsheet:
-     * @see https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-     * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
-     */
-     listMajors(auth) {
-        const sheets = googleapis.google.sheets({ version: 'v4', auth });
-        sheets.spreadsheets.values.get({
-            spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-            range: 'Class Data!A2:E',
-        }, (err, res) => {
-            if (err) return console.log('The API returned an error: ' + err);
-            const rows = res.data.values;
-            if (rows.length) {
-                console.log('Name, Major:');
-                // Print columns A and E, which correspond to indices 0 and 4.
-                rows.map((row) => {
-                    console.log(`${row[0]}, ${row[4]}`);
-                });
-            } else {
-                console.log('No data found.');
-            }
-        });
     }
     /**
      * Get and store new token after prompting for user authorization, and then
