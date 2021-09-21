@@ -1,6 +1,6 @@
 {
     "name": "agrefab-google-api-client",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Access Google APIs.",
     "main": "index.js",
     "scripts": {
