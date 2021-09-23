@@ -28,7 +28,7 @@ class GoogleApiClient {
     /**
      * List data from a public google sheet
      */
-    listExampleData() {
+    async listExampleData() {
         const sheets = googleapis.google.sheets({ version: 'v4', auth: this.oAuth2Client });
         return new Promise(function (resolve, reject) {
             sheets.spreadsheets.values.get({
@@ -76,24 +76,6 @@ class GoogleApiClient {
         // verify().catch(console.error);
     }
     /**
-     * Get and store new token after prompting for user authorization, and then
-     * execute the given callback with the authorized OAuth2 client.
-     * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
-     * @param {getEventsCallback} callback The callback for the authorized client.
-     */
-    getNewToken(oAuth2Client, callback) {
-        this.oAuth2Client.getToken(code, (err, token) => {
-            if (err) return console.error('Error while trying to retrieve access token', err);
-            oAuth2Client.setCredentials(token);
-            // Store the token to disk for later program executions
-            fs.writeFile(this.tokensFile, JSON.stringify(token), (err) => {
-                if (err) return console.error(err);
-                console.log('Token stored to', this.tokensFile);
-            });
-            callback(oAuth2Client);
-        });
-    }
-    /**
      * Parse code from succesful authentication callback from google's server
      * @param {*} req 
      * @param {*} res 
@@ -106,7 +88,7 @@ class GoogleApiClient {
                 if (err) return resolve(false);
                 this.oAuth2Client.setCredentials(token);
                 fs.writeFile(this.tokensFile, JSON.stringify(token), (_) => resolve(false));
-                return resolve(true)
+                return resolve(true);
             });
         });
     }
