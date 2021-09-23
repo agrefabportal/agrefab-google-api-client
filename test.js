@@ -23,9 +23,10 @@ var MOCK_CREDENTIALS = {
 // WARNING: Remove this entire token before committing to version control. 
 var MOCK_TOKEN = { "access_token": "###REMOVED###", "scope": "https://www.googleapis.com/auth/spreadsheets.readonly", "token_type": "Bearer", "expiry_date": 1632197422807 };
 (async function main() {
-    await writeMockTokenFile();
+    await MOCK_WRITE_TOKEN_FILE();
     await testListExampleData_returnsListAsString();
-    fs.unlink('tokens.json', () => { });
+    await testGetNewAuthToken_savesTokenAsFile();
+    await MOCK_DELETE_TOKEN_FILE();
 })().catch(error => console.error(error));
 /**
  * Test generating a pdf from an appsheets request
@@ -44,7 +45,13 @@ async function testListExampleData_returnsListAsString() {
 /**
  * Write mock token file
  */
-async function writeMockTokenFile() {
+async function MOCK_DELETE_TOKEN_FILE() {
+    fs.unlink('tokens.json', () => { });
+}
+/**
+ * Write mock token file
+ */
+async function MOCK_WRITE_TOKEN_FILE() {
     return new Promise((resolve, reject) => {
         fs.writeFile('tokens.json', JSON.stringify(MOCK_TOKEN), 'utf8', function MOCK_TOKEN_CALLBACK(error) {
             if (error) return reject(error);
