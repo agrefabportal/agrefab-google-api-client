@@ -24,14 +24,13 @@ var MOCK_CREDENTIALS = {
 var MOCK_TOKEN = { "access_token": "###REMOVED###", "scope": "https://www.googleapis.com/auth/spreadsheets.readonly", "token_type": "Bearer", "expiry_date": 1632197422807 };
 (async function main() {
     await MOCK_WRITE_TOKEN_FILE();
-    await testListExampleData_returnsListAsString();
-    await testGetNewAuthToken_savesTokenAsFile();
+    await testListExampleData_returnsListOfItems();
     await MOCK_DELETE_TOKEN_FILE();
 })().catch(error => console.error(error));
 /**
- * Test generating a pdf from an appsheets request
+ * Test api call to a known public spreadsheet
  */
-async function testListExampleData_returnsListAsString() {
+async function testListExampleData_returnsListOfItems() {
     try {
         let api = new GoogleApiClient(MOCK_CREDENTIALS);
         let authResult = await api.authorize();
