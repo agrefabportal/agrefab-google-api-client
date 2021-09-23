@@ -27,7 +27,7 @@ class GoogleApiClient {
     }
     /**
     * Get guide data and return a formated string
-    * @returns {string} output Formatted output
+    * @returns {Object} output Data neccessary to create a guide as a PDF document
     */
     async getGuide(guideTitle) {
         const sheets = googleapis.google.sheets({ version: 'v4', auth: this.oAuth2Client });
