@@ -25,8 +25,24 @@ var MOCK_TOKEN = { "access_token": "###REMOVED###", "scope": "https://www.google
 (async function main() {
     await MOCK_WRITE_TOKEN_FILE();
     await testListExampleData_returnsListOfItems();
+    await testGetGuide_returnsAgrefabGuide();
     await MOCK_DELETE_TOKEN_FILE();
 })().catch(error => console.error(error));
+/**
+ * Test get guide returns all the neccessary fields for an Appsheet guide to be converted into a PDF
+ */
+async function testGetGuide_returnsAgrefabGuide() {
+    try {
+        let api = new GoogleApiClient(MOCK_CREDENTIALS);
+        let authResult = await api.authorize();
+        assert.equal(authResult, true, "Mock credentials weren't valid. Any calls to a live API in this test won't work.");
+        let tables = await api.getGuide().catch(function (error) { console.log('GOOGLE API RESPONSE ERROR: ' + error); });
+        assert.equal(tables.length > 0, true);
+        return;
+    } catch (error) {
+        console.log(error);
+    }
+}
 /**
  * Test api call to a known public spreadsheet
  */

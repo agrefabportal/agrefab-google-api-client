@@ -26,6 +26,26 @@ class GoogleApiClient {
         this.oAuth2Client = new googleapis.google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
     }
     /**
+    * Get guide data and return a formated string
+    * @returns {string} output Formatted output
+    */
+    async getGuide(guideTitle) {
+        const sheets = googleapis.google.sheets({ version: 'v4', auth: this.oAuth2Client });
+        return new Promise(function (resolve, reject) {
+            sheets.spreadsheets.values.batchGet({
+                spreadsheetId: '155WzyGXQat73gHDnooFiZq-x2f_4ysAgU3n_-rjHFUg',
+                ranges: ["Guides!A1:Z", "Steps!A1:Z", "Bullets!A1:Z", "Tools!A1:Z"]
+            }, (error, response) => {
+                if (error) return reject('The API returned an error: ' + error)
+                let guides = response.data.valueRanges[0].values;
+                let steps = response.data.valueRanges[1].values;
+                let bullets = response.data.valueRanges[2].values;
+                let tools = response.data.valueRanges[3].values;
+                resolve({ guides, steps, bullets, tools });
+            });
+        }.bind(sheets));
+    }
+    /**
      * List data from a public google sheet
      */
     async listExampleData() {
