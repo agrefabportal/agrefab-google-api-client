@@ -23,14 +23,14 @@ var MOCK_CREDENTIALS = {
 // WARNING: Remove this entire token before committing to version control. 
 var MOCK_TOKEN = { "access_token": "###REMOVED###", "scope": "https://www.googleapis.com/auth/spreadsheets.readonly", "token_type": "Bearer", "expiry_date": 1632197422807 };
 (async function main() {
+    await MOCK_WRITE_TOKEN_FILE();
     Promise.all([
-        await MOCK_WRITE_TOKEN_FILE(),
         await testListExampleData_returnsListOfItems(),
         await testGetGuide_returnsAgrefabGuide(),
-        await MOCK_DELETE_TOKEN_FILE(),
-    ]).then(value => {
+    ]).then(async function (value) {
         console.log('🏖  All tests passed. ✅');
     });
+    await MOCK_DELETE_TOKEN_FILE();
 })().catch(error => console.error(error));
 /**
  * Test get guide returns all the neccessary fields for an Appsheet guide to be converted into a PDF
