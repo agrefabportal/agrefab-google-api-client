@@ -102,13 +102,13 @@ class GoogleApiClient {
      * @returns {Promise}
      */
     async parseCode(req, res) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             let code = req.url.slice(req.url.indexOf('code=') + 5, req.url.indexOf('&scope='));
-            this.oAuth2Client.getToken(decodeURIComponent(code), (err, token) => {
-                if (err) return resolve(false);
+            this.oAuth2Client.getToken(decodeURIComponent(code), (error, token) => {
+                if (error) return reject(error);
                 this.oAuth2Client.setCredentials(token);
-                fs.writeFile(this.tokensFile, JSON.stringify(token), (_) => resolve(false));
-                return resolve(true);
+                fs.writeFile(this.tokensFile, JSON.stringify(token), (error) => reject(error));
+                resolve(token);
             });
         });
     }
