@@ -1,6 +1,5 @@
 const fs = require('fs');
 const googleapis = require('googleapis');
-
 /**
  * Access the google api with valid credentials.
  */
