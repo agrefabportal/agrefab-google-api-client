@@ -6,8 +6,10 @@ NodeJS client for getting data from various Google APIs.
 
 ## How to use
 ```javascript
+const GoogleApiClient = require('agrefab-google-api-client');
+
+
 (async function main() {
-    const GoogleApiClient = require('agrefab-google-api-client');
     let your_credentials = {
         "web": {
             "client_id": "###REMOVED###",
