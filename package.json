@@ -1,7 +1,7 @@
 {
     "name": "agrefab-google-api-client",
     "version": "0.0.5",
-    "description": "Access Google APIs.",
+    "description": "NodeJS library for accessing Google APIs.",
     "main": "index.js",
     "scripts": {
         "test": "node test.js"
