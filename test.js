@@ -66,6 +66,21 @@ async function getGoogleApiClient() {
     assert.equal(authResult, true, "Mock credentials weren't valid. Any calls to a live API in this test won't work.");
     return api;
 }
+
+/**
+ * Delete file on the local filesystem. This inherently also checks if the file exists. Assertions are made during the delete process.
+ * @param {string} filePath Relative path to the file including its name and extension.
+ */
+async function deleteFile(filePath) {
+    return new Promise((resolve, reject) => {
+        fs.unlink(filePath, err => {
+            assert.notEqual(err?.code, 'ENOENT', `There was no file found with the following name: ${filePath}`);
+            assert.equal(err, null);
+            console.log(`📄🗑 ${filePath} was created and deleted. Comment out @function deleteFile() to keep the file.`);
+            resolve();
+        });
+    });
+}
 /**
  * Write mock token file
  */
