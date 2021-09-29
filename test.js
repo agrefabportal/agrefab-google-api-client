@@ -36,25 +36,21 @@ const GoogleApiClient = require('./index.js');
  * Test get guide returns all the neccessary fields for an Appsheet guide to be converted into a PDF
  */
 async function testGetGuide_returnsAgrefabGuide() {
-    try {
-        let api = await getGoogleApiClient();
-        let tables = await api.getGuide().catch(error => {
-            console.log('GOOGLE API RESPONSE ERROR: ' + error);
-        });
-        assert.equal(tables.length > 0, true);
-    } catch (error) { console.log(error); }
+    let api = await getGoogleApiClient();
+    let tables = await api.getGuide().catch(error => {
+        console.log('GOOGLE API RESPONSE ERROR: ' + error);
+    });
+    assert.equal(tables.length > 0, true);
 }
 /**
  * Test api call to a known public spreadsheet
  */
 async function testListExampleData_returnsListOfItems() {
-    try {
-        let api = await getGoogleApiClient();
-        let data = await api.listExampleData().catch(error => {
-            console.log('GOOGLE API RESPONSE ERROR: ' + error);
-        });
-        assert.equal(data.length > 0, true);
-    } catch (error) { console.error(error); }
+    let api = await getGoogleApiClient();
+    let data = await api.listExampleData().catch(error => {
+        console.log('GOOGLE API RESPONSE ERROR: ' + error);
+    });
+    assert.equal(data.length > 0, true);
 }
 /**
  * Get an instance of the google api client
