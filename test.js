@@ -30,8 +30,20 @@ const GoogleApiClient = require('./index.js');
     ]).then(async function (value) {
         console.log('🏖  All tests passed. ✅');
     });
+        await testGetImage_savesFile(),
+    ]).catch(error => console.error(error)).then(async _ => console.log('🏖  All tests passed. ✅'));
     await DELETE_TOKEN_FILE();
 })().catch(error => console.error(error));
+/**
+ * Test getting an image from google drive
+ */
+async function testGetImage_savesFile() {
+    let api = await getGoogleApiClient();
+    let filePath = await api.saveImage('05d8fd63.GuidePhoto.143710.jpg', '1h57dhuy').catch(error => {
+        console.log('GOOGLE API RESPONSE ERROR: ' + error);
+    });
+    await deleteFile(filePath);
+}
 /**
  * Test get guide returns all the neccessary fields for an Appsheet guide to be converted into a PDF
  */

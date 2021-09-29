@@ -4,7 +4,7 @@ const googleapis = require('googleapis');
  * Access the google api with valid credentials.
  */
 class GoogleApiClient {
-    scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+    scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly', 'https://www.googleapis.com/auth/drive.readonly'];
     tokensFile = 'tokens.json';
     users = { "count": 0 };
     oAuth2Client;
@@ -23,6 +23,52 @@ class GoogleApiClient {
         this.credentials = credentials;
         let { client_secret, client_id, redirect_uris } = credentials.web;
         this.oAuth2Client = new googleapis.google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    }
+    /**
+    * Get image from google drive
+    * @returns {String} file Path to saved file
+    */
+    async saveImage(fileName, guideId) {
+        const drive = googleapis.google.drive({ version: 'v3', auth: this.oAuth2Client });
+        return new Promise(async function (resolve, reject) {
+            let fileId = await this.googleApiClient.getFileId(fileName, drive).catch(error => {
+                console.error(error);
+            });
+            if (fileId) {
+                drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'stream' }, ((error, response) => {
+                    let destinationFileName = `${this.guideId}_${this.fileName}`;
+                    var destination = fs.createWriteStream(destinationFileName);
+                    response.data.on('error', error => reject(error));
+                    response.data.pipe(destination);
+                    destination.on('error', error => reject(error));
+                    destination.on('close', () => resolve(destinationFileName));
+                }).bind({ fileName: this.fileName, guideId: this.guideId, resolve, reject }));
+            } else {
+                reject('No file ID');
+            }
+        }.bind({ googleApiClient: this, guideId, fileName }));
+    }
+    /**
+    * Get file ID from the app sheet google drive folder
+    * @returns {String} fileId File ID associated with the file name
+    */
+    async getFileId(name, drive) {
+        return new Promise(function (resolve, reject) {
+            drive.files.list({
+                q: `name = "${name}" and "1El9O36ejRykuK_hobtqvE8FWvqYOTB1h" in parents`,
+            }, (error, response) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    let files = response.data.files
+                    if (files.length > 0) {
+                        resolve(files[0].id);
+                    } else {
+                        reject('No file found matching that name.')
+                    }
+                }
+            });
+        });
     }
     /**
     * Get guide data and return a formated string
