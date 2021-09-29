@@ -79,7 +79,7 @@ class GoogleApiClient {
         return new Promise(function (resolve, reject) {
             sheets.spreadsheets.values.batchGet({
                 spreadsheetId: '155WzyGXQat73gHDnooFiZq-x2f_4ysAgU3n_-rjHFUg',
-                ranges: ["Guides!A1:Z", "Steps!A1:Z", "Bullets!A1:Z", "Tools!A1:Z"]
+                ranges: ['Guides!A1:Z', 'Steps!A1:Z', 'Bullets!A1:Z', 'Tools!A1:Z']
             }, (error, response) => {
                 if (error) return reject('The API returned an error: ' + error)
                 let guides = response.data.valueRanges[0].values;
