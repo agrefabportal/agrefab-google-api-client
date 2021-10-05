@@ -66,7 +66,7 @@ class GoogleApiClient {
                     response.data.on('error', error => reject(error));
                     response.data.pipe(destination);
                     destination.on('error', error => reject(error));
-                    destination.on('close', () => resolve(destinationFileName));
+                    destination.on('close', () => resolve());
                 }).bind({ fileName: this.fileName, guideId: this.guideId, resolve, reject }));
             } else {
                 reject('No file ID');
