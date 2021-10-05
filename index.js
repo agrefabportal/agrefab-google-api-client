@@ -9,6 +9,11 @@ class GoogleApiClient {
     users = { "count": 0 };
     oAuth2Client;
     credentials;
+    ldirectoryId = '1El9O36ejRykuK_hobtqvE8FWvqYOTB1h';
+    directoryId = '1sUjl9vxClD3rQOGe45bSib-HaJ-xLIvD';
+    lspreadsheetId = '10URS2a6wZLGx86X1EOvK_5iKROdIb5NZNtcWx5ZOp9g';
+    spreadsheetId = '155WzyGXQat73gHDnooFiZq-x2f_4ysAgU3n_-rjHFUg';
+    lstepdirectoryId = '1Hs3MOir9e-PPY8BSf_IkALDN9SrwkqkR';
     get authUrl() {
         return this.oAuth2Client.generateAuthUrl({
             access_type: 'offline',
@@ -25,18 +30,59 @@ class GoogleApiClient {
         this.oAuth2Client = new googleapis.google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
     }
     /**
+     * Check for existing token file. If it exists, then set it as the api client credentials.
+     * @returns {Boolean} If false, there is not an authorized api clients. Any requests to the api will fail until authorization is successful.
+     */
+     async authorize() {
+        return new Promise(resolve => {
+            fs.readFile(this.tokensFile, (async (err, token) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    this.oAuth2Client.setCredentials(JSON.parse(token));
+                    this.users.count = 1;
+                    resolve(true);
+                }
+            }).bind(this.oAuth2Client));
+        });
+    }
+    /**
     * Get image from google drive
     * @returns {String} file Path to saved file
     */
-    async saveImage(fileName, guideId) {
+    async saveStepImage(fileName, guideId) {
         const drive = googleapis.google.drive({ version: 'v3', auth: this.oAuth2Client });
         return new Promise(async function (resolve, reject) {
-            let fileId = await this.googleApiClient.getFileId(fileName, drive).catch(error => {
-                console.error(error);
+            let fileId = await this.googleApiClient.getStepFileId(fileName, drive).catch(error => {
+                reject(error);
             });
             if (fileId) {
                 drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'stream' }, ((error, response) => {
-                    let destinationFileName = `${this.guideId}_${this.fileName}`;
+                    let destinationFileName = `${this.fileName}`;
+                    var destination = fs.createWriteStream(destinationFileName);
+                    response.data.on('error', error => reject(error));
+                    response.data.pipe(destination);
+                    destination.on('error', error => reject(error));
+                    destination.on('close', () => resolve(destinationFileName));
+                }).bind({ fileName: this.fileName, guideId: this.guideId, resolve, reject }));
+            } else {
+                reject('No file ID');
+            }
+        }.bind({ googleApiClient: this, guideId, fileName }));
+    }
+    /**
+    * Get image from google drive
+    * @returns {String} file Path to saved file
+    */
+    async saveGuideImage(fileName, guideId) {
+        const drive = googleapis.google.drive({ version: 'v3', auth: this.oAuth2Client });
+        return new Promise(async function (resolve, reject) {
+            let fileId = await this.googleApiClient.getGuideFileId(fileName, drive).catch(error => {
+                reject(error);
+            });
+            if (fileId) {
+                drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'stream' }, ((error, response) => {
+                    let destinationFileName = `${this.fileName}`;
                     var destination = fs.createWriteStream(destinationFileName);
                     response.data.on('error', error => reject(error));
                     response.data.pipe(destination);
@@ -52,10 +98,10 @@ class GoogleApiClient {
     * Get file ID from the app sheet google drive folder
     * @returns {String} fileId File ID associated with the file name
     */
-    async getFileId(name, drive) {
+    async getStepFileId(name, drive) {
         return new Promise(function (resolve, reject) {
             drive.files.list({
-                q: `name = "${name}" and "1El9O36ejRykuK_hobtqvE8FWvqYOTB1h" in parents`,
+                q: `name = "${this.name}" and "${this.lstepdirectoryId}" in parents`,
             }, (error, response) => {
                 if (error) {
                     reject(error);
@@ -68,7 +114,29 @@ class GoogleApiClient {
                     }
                 }
             });
-        });
+        }.bind({ lstepdirectoryId: this.lstepdirectoryId, name }));
+    }
+    /**
+    * Get file ID from the app sheet google drive folder
+    * @returns {String} fileId File ID associated with the file name
+    */
+    async getGuideFileId(name, drive) {
+        return new Promise(function (resolve, reject) {
+            drive.files.list({
+                q: `name = "${this.name}" and "${this.ldirectoryId}" in parents`,
+            }, (error, response) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    let files = response.data.files
+                    if (files.length > 0) {
+                        resolve(files[0].id);
+                    } else {
+                        reject('No file found matching that name.')
+                    }
+                }
+            });
+        }.bind({ ldirectoryId: this.ldirectoryId, name }));
     }
     /**
     * Get guide data and return a formated string
@@ -78,7 +146,7 @@ class GoogleApiClient {
         const sheets = googleapis.google.sheets({ version: 'v4', auth: this.oAuth2Client });
         return new Promise(function (resolve, reject) {
             sheets.spreadsheets.values.batchGet({
-                spreadsheetId: '155WzyGXQat73gHDnooFiZq-x2f_4ysAgU3n_-rjHFUg',
+                spreadsheetId: '10URS2a6wZLGx86X1EOvK_5iKROdIb5NZNtcWx5ZOp9g',
                 ranges: ['Guides!A1:Z', 'Steps!A1:Z', 'Bullets!A1:Z', 'Tools!A1:Z']
             }, (error, response) => {
                 if (error) return reject('The API returned an error: ' + error)
@@ -97,33 +165,13 @@ class GoogleApiClient {
         const sheets = googleapis.google.sheets({ version: 'v4', auth: this.oAuth2Client });
         return new Promise(function (resolve, reject) {
             sheets.spreadsheets.values.get({
-                spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+                lspreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
                 range: 'Class Data!A2:E',
             }, (err, res) => {
                 if (err) return reject('The API returned an error: ' + err);
                 resolve(res.data.values);
             });
         }.bind(sheets));
-    }
-    /**
-     * Create an OAuth2 client with the given credentials, and then execute the
-     * given callback function.
-     * @param {Object} credentials The authorization client credentials.
-     * @param {function} callback The callback to call with the authorized client.
-     * @returns {Promise}
-     */
-    async authorize() {
-        return new Promise(resolve => {
-            fs.readFile(this.tokensFile, (async (err, token) => {
-                if (err) {
-                    resolve(false);
-                } else {
-                    this.oAuth2Client.setCredentials(JSON.parse(token));
-                    this.users.count = 1;
-                    resolve(true);
-                }
-            }).bind(this.oAuth2Client));
-        });
     }
     /**
      * Verify token(s) in token file
