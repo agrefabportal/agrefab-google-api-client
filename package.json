@@ -21,5 +21,12 @@
     "homepage": "https://github.com/agrefabportal/agrefab-google-api-client#readme",
     "dependencies": {
         "googleapis": "^39.2.0"
-    }
+    },
+    "files": [
+        "LICENSE",
+        "README.md",
+        "index.js",
+        "package.json",
+        "package-lock.json"
+    ]
 }
