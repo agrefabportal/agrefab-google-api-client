@@ -1,12 +1,12 @@
 // WARNING: Remove client secret, client id, and project id before committing to version control. 
 var MOCK_CREDENTIALS = {
     "web": {
-        "client_id": "903489934431-9mem2jf7r4tuuj5ardp0v28sl6aq2h5i.apps.googleusercontent.com",
-        "project_id": "agrefab-api-keys-325400",
+        "client_id": "###REMOVED###",
+        "project_id": "###REMOVED###",
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
         "token_uri": "https://oauth2.googleapis.com/token",
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_secret": "1zXN64rkcwlKL0qEL3H_oT_0",
+        "client_secret": "###REMOVED###",
         "redirect_uris": [
             "http://localhost:3000/a"
         ],
@@ -18,15 +18,15 @@ var MOCK_CREDENTIALS = {
     }
 };
 // WARNING: Remove access token before committing to version control. 
-var MOCK_TOKEN = { "access_token": "ya29.a0ARrdaM95aNNzi8AvJrMJJeBtZCLyOjRhMVuRcMOE_hFUdS2vs407HiDyM2qmOCRWjMFJd4dAsY4PQEm4edPCemfLFDBbpnV3CBu-Emwgz1HZuQ_kyqLCZaHb80J0T2EzEg9acNUzap2YA1Qk6sQOOqBwlkYE", "refresh_token": "1//0fTjh_SORAq_KCgYIARAAGA8SNwF-L9Irq9TdKHXrSNDa9QtJX1KGvemjXs7MlOdakHX6mkLKgv67r37Yra0gGO_Yc8AeSsrI-rM", "scope": "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/spreadsheets.readonly", "token_type": "Bearer", "expiry_date": 1632844072905 };
+var MOCK_TOKEN = { "access_token": "###REMOVED###", "refresh_token": "###REMOVED###", "scope": "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/spreadsheets.readonly", "token_type": "Bearer", "expiry_date": 1632844072905 };
 const assert = require('assert');
 const fs = require('fs');
 const GoogleApiClient = require('./index.js');
 (async function main() {
     await WRITE_TOKEN_FILE();
     await Promise.all([
-        // testListExampleData_returnsListOfItems(),
-        // testGetGuide_returnsAgrefabGuide(),
+        testListExampleData_returnsListOfItems(),
+        testGetGuide_returnsAgrefabGuide(),
         testGetGuideImage_savesFile(),
         testGetStepImages_savesFiles(),
     ]).catch(error => console.error(error)).then(async _ => console.log('🏖  All tests passed. ✅'));
