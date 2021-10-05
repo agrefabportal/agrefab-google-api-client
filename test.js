@@ -27,9 +27,6 @@ const GoogleApiClient = require('./index.js');
     Promise.all([
         await testListExampleData_returnsListOfItems(),
         await testGetGuide_returnsAgrefabGuide(),
-    ]).then(async function (value) {
-        console.log('🏖  All tests passed. ✅');
-    });
         await testGetImage_savesFile(),
     ]).catch(error => console.error(error)).then(async _ => console.log('🏖  All tests passed. ✅'));
     await DELETE_TOKEN_FILE();
