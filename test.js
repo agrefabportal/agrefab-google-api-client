@@ -1,12 +1,12 @@
 // WARNING: Remove client secret, client id, and project id before committing to version control. 
 var MOCK_CREDENTIALS = {
     "web": {
-        "client_id": "###REMOVED###",
-        "project_id": "###REMOVED###",
+        "client_id": "903489934431-9mem2jf7r4tuuj5ardp0v28sl6aq2h5i.apps.googleusercontent.com",
+        "project_id": "agrefab-api-keys-325400",
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
         "token_uri": "https://oauth2.googleapis.com/token",
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_secret": "###REMOVED###",
+        "client_secret": "1zXN64rkcwlKL0qEL3H_oT_0",
         "redirect_uris": [
             "http://localhost:3000/a"
         ],
@@ -18,47 +18,56 @@ var MOCK_CREDENTIALS = {
     }
 };
 // WARNING: Remove access token before committing to version control. 
-var MOCK_TOKEN = { "access_token": "###REMOVED###", "scope": "https://www.googleapis.com/auth/spreadsheets.readonly", "token_type": "Bearer", "expiry_date": 1632197422807 };
+var MOCK_TOKEN = { "access_token": "ya29.a0ARrdaM95aNNzi8AvJrMJJeBtZCLyOjRhMVuRcMOE_hFUdS2vs407HiDyM2qmOCRWjMFJd4dAsY4PQEm4edPCemfLFDBbpnV3CBu-Emwgz1HZuQ_kyqLCZaHb80J0T2EzEg9acNUzap2YA1Qk6sQOOqBwlkYE", "refresh_token": "1//0fTjh_SORAq_KCgYIARAAGA8SNwF-L9Irq9TdKHXrSNDa9QtJX1KGvemjXs7MlOdakHX6mkLKgv67r37Yra0gGO_Yc8AeSsrI-rM", "scope": "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/spreadsheets.readonly", "token_type": "Bearer", "expiry_date": 1632844072905 };
 const assert = require('assert');
 const fs = require('fs');
 const GoogleApiClient = require('./index.js');
 (async function main() {
     await WRITE_TOKEN_FILE();
-    Promise.all([
-        await testListExampleData_returnsListOfItems(),
-        await testGetGuide_returnsAgrefabGuide(),
-        await testGetImage_savesFile(),
+    await Promise.all([
+        // testListExampleData_returnsListOfItems(),
+        // testGetGuide_returnsAgrefabGuide(),
+        testGetGuideImage_savesFile(),
+        testGetStepImages_savesFiles(),
     ]).catch(error => console.error(error)).then(async _ => console.log('🏖  All tests passed. ✅'));
     await DELETE_TOKEN_FILE();
 })().catch(error => console.error(error));
+
 /**
  * Test getting an image from google drive
  */
-async function testGetImage_savesFile() {
+async function testGetGuideImage_savesFile() {
+}
+/**
+* Get a step image from google drive and check that it saves a file.
+*/
+async function testGetStepImages_savesFiles() {
     let api = await getGoogleApiClient();
-    let filePath = await api.saveImage('05d8fd63.GuidePhoto.143710.jpg', '1h57dhuy').catch(error => {
-        console.log('GOOGLE API RESPONSE ERROR: ' + error);
-    });
-    await deleteFile(filePath);
+    let filePath = await api.saveStepImage('5fb5bee7.Photo1.132604.jpg', '05d8fd63').catch(error => console.log('GOOGLE API RESPONSE ERROR: ' + error));
+    await deletePhotoFile(filePath);
+}
+/**
+ * Get the guide image from google drive and check that it saves a file.
+ */
+async function testGetGuideImage_savesFile() {
+    let api = await getGoogleApiClient();
+    let filePath = await api.saveGuideImage('05d8fd63.GuidePhoto.143710.jpg', '05d8fd63').catch(error => console.error('GOOGLE API RESPONSE ERROR: ' + error));
+    await deletePhotoFile(filePath);
 }
 /**
  * Test get guide returns all the neccessary fields for an Appsheet guide to be converted into a PDF
  */
 async function testGetGuide_returnsAgrefabGuide() {
     let api = await getGoogleApiClient();
-    let tables = await api.getGuide().catch(error => {
-        console.log('GOOGLE API RESPONSE ERROR: ' + error);
-    });
-    assert.equal(tables.length > 0, true);
+    let tables = await api.getGuide().catch(error => console.error('GOOGLE API RESPONSE ERROR: ' + error));
+    assert.equal(tables != undefined, true);
 }
 /**
  * Test api call to a known public spreadsheet
  */
 async function testListExampleData_returnsListOfItems() {
     let api = await getGoogleApiClient();
-    let data = await api.listExampleData().catch(error => {
-        console.log('GOOGLE API RESPONSE ERROR: ' + error);
-    });
+    let data = await api.listExampleData().catch(error => console.log('GOOGLE API RESPONSE ERROR: ' + error));
     assert.equal(data.length > 0, true);
 }
 /**
@@ -76,21 +85,23 @@ async function getGoogleApiClient() {
  * Delete file on the local filesystem. This inherently also checks if the file exists. Assertions are made during the delete process.
  * @param {string} filePath Relative path to the file including its name and extension.
  */
-async function deleteFile(filePath) {
+async function deletePhotoFile(filePath) {
     return new Promise((resolve, reject) => {
-        fs.unlink(filePath, err => {
-            assert.notEqual(err?.code, 'ENOENT', `There was no file found with the following name: ${filePath}`);
-            assert.equal(err, null);
+        fs.unlink(`photos/${filePath}`, error => {
+            assert.notEqual(error?.code, 'ENOENT', `There was no file found with the following name: ${filePath}`);
+            assert.equal(error, null);
             console.log(`📄🗑 ${filePath} was created and deleted. Comment out @function deleteFile() to keep the file.`);
             resolve();
         });
     });
 }
 /**
- * Write mock token file
+ * Delete mock token file
  */
 async function DELETE_TOKEN_FILE() {
-    fs.unlink('tokens.json', () => { });
+    return new Promise((resolve, reject) => {
+        fs.unlink('tokens.json', _ => { resolve() });
+    });
 }
 /**
  * Write mock token file

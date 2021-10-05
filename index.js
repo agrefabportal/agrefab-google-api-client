@@ -33,7 +33,7 @@ class GoogleApiClient {
      * Check for existing token file. If it exists, then set it as the api client credentials.
      * @returns {Boolean} If false, there is not an authorized api clients. Any requests to the api will fail until authorization is successful.
      */
-     async authorize() {
+    async authorize() {
         return new Promise(resolve => {
             fs.readFile(this.tokensFile, (async (err, token) => {
                 if (err) {
@@ -48,9 +48,12 @@ class GoogleApiClient {
     }
     /**
     * Get image from google drive
+    * @param {String} name Name of image file, including extension
+    * @param {GoogleApiClient} drive Instance of google api client
     * @returns {String} file Path to saved file
     */
     async saveStepImage(fileName, guideId) {
+        await this.#createPhotoDirectoryIfEmpty().catch(error => console.error(error));
         const drive = googleapis.google.drive({ version: 'v3', auth: this.oAuth2Client });
         return new Promise(async function (resolve, reject) {
             let fileId = await this.googleApiClient.getStepFileId(fileName, drive).catch(error => {
@@ -59,31 +62,7 @@ class GoogleApiClient {
             if (fileId) {
                 drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'stream' }, ((error, response) => {
                     let destinationFileName = `${this.fileName}`;
-                    var destination = fs.createWriteStream(destinationFileName);
-                    response.data.on('error', error => reject(error));
-                    response.data.pipe(destination);
-                    destination.on('error', error => reject(error));
-                    destination.on('close', () => resolve(destinationFileName));
-                }).bind({ fileName: this.fileName, guideId: this.guideId, resolve, reject }));
-            } else {
-                reject('No file ID');
-            }
-        }.bind({ googleApiClient: this, guideId, fileName }));
-    }
-    /**
-    * Get image from google drive
-    * @returns {String} file Path to saved file
-    */
-    async saveGuideImage(fileName, guideId) {
-        const drive = googleapis.google.drive({ version: 'v3', auth: this.oAuth2Client });
-        return new Promise(async function (resolve, reject) {
-            let fileId = await this.googleApiClient.getGuideFileId(fileName, drive).catch(error => {
-                reject(error);
-            });
-            if (fileId) {
-                drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'stream' }, ((error, response) => {
-                    let destinationFileName = `${this.fileName}`;
-                    var destination = fs.createWriteStream(destinationFileName);
+                    var destination = fs.createWriteStream(`photos/${destinationFileName}`);
                     response.data.on('error', error => reject(error));
                     response.data.pipe(destination);
                     destination.on('error', error => reject(error));
@@ -96,6 +75,8 @@ class GoogleApiClient {
     }
     /**
     * Get file ID from the app sheet google drive folder
+    * @param {String} fileName Name of image file, including extension
+    * @param {String} guideId Id of the relevant guide
     * @returns {String} fileId File ID associated with the file name
     */
     async getStepFileId(name, drive) {
@@ -117,7 +98,36 @@ class GoogleApiClient {
         }.bind({ lstepdirectoryId: this.lstepdirectoryId, name }));
     }
     /**
+    * Get guide photo from google drive
+    * @param {String} fileName Name of image file, including extension
+    * @param {String} guideId Id of the relevant guide
+    * @returns {String} file Path to saved file
+    */
+    async saveGuideImage(fileName, guideId) {
+        await this.#createPhotoDirectoryIfEmpty().catch(error => console.error(error));
+        const drive = googleapis.google.drive({ version: 'v3', auth: this.oAuth2Client });
+        return new Promise(async function (resolve, reject) {
+            let fileId = await this.googleApiClient.getGuideFileId(fileName, drive).catch(error => {
+                reject(error);
+            });
+            if (fileId) {
+                drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'stream' }, ((error, response) => {
+                    let destinationFileName = `${this.fileName}`;
+                    var destination = fs.createWriteStream(`photos/${destinationFileName}`);
+                    response.data.on('error', error => reject(error));
+                    response.data.pipe(destination);
+                    destination.on('error', error => reject(error));
+                    destination.on('close', () => resolve(destinationFileName));
+                }).bind({ fileName: this.fileName, guideId: this.guideId, resolve, reject }));
+            } else {
+                reject('No file ID');
+            }
+        }.bind({ googleApiClient: this, guideId, fileName }));
+    }
+    /**
     * Get file ID from the app sheet google drive folder
+    * @param {String} name Name of image file, including extension
+    * @param {GoogleApiClient} drive Instance of google api client
     * @returns {String} fileId File ID associated with the file name
     */
     async getGuideFileId(name, drive) {
@@ -165,7 +175,7 @@ class GoogleApiClient {
         const sheets = googleapis.google.sheets({ version: 'v4', auth: this.oAuth2Client });
         return new Promise(function (resolve, reject) {
             sheets.spreadsheets.values.get({
-                lspreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+                spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
                 range: 'Class Data!A2:E',
             }, (err, res) => {
                 if (err) return reject('The API returned an error: ' + err);
@@ -202,6 +212,13 @@ class GoogleApiClient {
                 this.oAuth2Client.setCredentials(token);
                 fs.writeFile(this.tokensFile, JSON.stringify(token), (error) => reject(error));
                 resolve(token);
+            });
+        });
+    }
+    async #createPhotoDirectoryIfEmpty() {
+        return new Promise((resolve, reject) => {
+            fs.mkdir('photos', { recursive: true }, (err) => {
+                if (err) { reject(err); } else { resolve(); }
             });
         });
     }
